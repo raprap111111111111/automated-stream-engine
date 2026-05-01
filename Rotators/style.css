@@ -1,7 +1,8 @@
 html,
 body {
-  height: 100%;
-  background: #0f172a;
+  height: auto; 
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .timeline-grid {
@@ -279,4 +280,74 @@ body {
 
 .right-panel-scroll {
   max-height: 100%;
+}
+
+.min-h-screen.flex {
+  flex-direction: column; /* Stack sidebar on top of content for mobile */
+}
+
+@media (min-width: 1024px) {
+  .min-h-screen.flex {
+    flex-direction: row; /* Horizontal for Laptop */
+  }
+}
+
+/* 3. Sidebar Adjustments */
+aside {
+  width: 100% !important; /* Full width on mobile */
+  height: auto;
+  border-right: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 1024px) {
+  aside {
+    width: 18rem !important; /* 72px equivalent */
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+}
+
+/* 4. Grid Adjustments (Dashboard Cards) */
+.grid-cols-12 {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 1280px) {
+  .grid-cols-12 {
+    display: grid;
+  }
+}
+
+/* 5. Video Player and Panels */
+.panel {
+  width: 100%;
+  height: auto !important;
+  min-height: unset;
+}
+
+video {
+  height: auto !important; /* Allow video to shrink proportionally */
+  max-height: 50vh;
+}
+
+/* 6. Timeline Responsiveness */
+/* Keep the timeline scrollable horizontally but prevent parent break */
+.overflow-x-auto {
+  width: 100vw;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 7. Card Stacking for Status (Waiting/None/0) */
+.grid-cols-3 {
+  grid-template-columns: 1fr; /* Stack vertically on mobile */
+}
+
+@media (min-width: 768px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, 1fr); /* Horizontal on Tablet/PC */
+  }
 }
