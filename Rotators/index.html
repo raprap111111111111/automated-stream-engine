@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Broadcast Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="text-slate-100">
+  <div class="min-h-screen flex bg-slate-950">
+    <aside class="w-72 bg-[#020817] border-r border-white/10 flex flex-col">
+      <div class="p-6 border-b border-white/10">
+        <div class="text-2xl font-semibold text-blue-400">Broadcast Engine</div>
+        <div class="text-sm text-slate-400 mt-1">v2.4.0 Stable</div>
+        <button id="newBroadcastBtn"
+          class="mt-6 w-full rounded-lg bg-blue-200 text-slate-800 py-3 font-medium hover:bg-blue-100 transition">
+          + New Broadcast
+        </button>
+      </div>
+
+      <nav class="p-4 space-y-2">
+        <button data-view="dashboard"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-blue-600/20 text-blue-400 border-l-4 border-blue-500">
+          <span>▦</span>
+          <span>Dashboard</span>
+        </button>
+        <button data-view="library"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-white/5">
+          <span>▣</span>
+          <span>Library</span>
+        </button>
+        <button data-view="settings"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-white/5">
+          <span>⚙</span>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="mt-auto p-4 border-t border-white/10 text-sm text-slate-400 space-y-3">
+        <div>◉ System Status</div>
+        <div>▤ Documentation</div>
+      </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col min-w-0">
+      <header
+        class="h-20 border-b border-white/10 bg-black/40 backdrop-blur flex items-center justify-between px-6 gap-4">
+        <div class="flex-1 max-w-2xl">
+          <input type="text" placeholder="Search broadcasts, assets, or schedules..."
+            class="w-full rounded-md bg-black/40 border border-white/10 px-4 py-3 text-slate-200 placeholder:text-slate-500 outline-none" />
+        </div>
+
+        <div class="hidden md:flex items-center gap-8 text-sm font-semibold">
+          <button class="text-blue-400 border-b-2 border-blue-500 pb-1">DASHBOARD</button>
+          <button class="text-slate-300 hover:text-white">LIBRARY</button>
+          <button class="text-slate-300 hover:text-white">ANALYTICS</button>
+        </div>
+
+        <div class="flex items-center gap-4 text-xl text-slate-300">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </header>
+
+      <section id="dashboardView" class="flex-1 flex flex-col min-h-0">
+        <div class="flex-1 grid grid-cols-12 gap-5 p-5 min-h-0">
+          <div class="col-span-12 xl:col-span-8 min-h-0 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-3xl font-semibold tracking-tight">Main Preview</h2>
+              <div class="flex items-center gap-4 text-sm">
+                <div class="px-4 py-2 rounded-md border border-emerald-400/30 bg-emerald-400/10 text-emerald-300">
+                  ● LIVE FEED
+                </div>
+                <div id="clockText" class="text-slate-300 font-mono">00:00:00</div>
+              </div>
+            </div>
+
+            <div class="panel rounded-2xl p-5 flex-1 min-h-[420px] flex flex-col">
+              <div class="relative rounded-xl overflow-hidden bg-slate-950 preview-glow">
+                <video id="videoPlayer" class="w-full h-[440px] bg-black object-contain" controls></video>
+
+                <div
+                  class="absolute left-6 bottom-6 flex items-center gap-4 bg-black/40 backdrop-blur px-4 py-3 rounded-xl border border-white/10">
+                  <button id="playNowBtn"
+                    class="w-14 h-14 rounded-xl bg-white/10 border border-white/10 text-2xl hover:bg-white/20">
+                    ▶
+                  </button>
+                  <div>
+                    <div id="overlayTitle" class="text-2xl font-medium">No clip selected</div>
+                    <div id="overlaySubtitle" class="text-sm tracking-[0.2em] text-slate-300 uppercase">Source: Local
+                      Library</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 grid grid-cols-3 gap-4">
+                <div class="soft-panel rounded-xl p-4">
+                  <div class="text-slate-400 text-sm">Status</div>
+                  <div id="statusText" class="text-2xl font-semibold mt-2">Waiting for assets</div>
+                </div>
+                <div class="soft-panel rounded-xl p-4">
+                  <div class="text-slate-400 text-sm">Current Block</div>
+                  <div id="nowPlayingText" class="text-2xl font-semibold mt-2">None</div>
+                </div>
+                <div class="soft-panel rounded-xl p-4">
+                  <div class="text-slate-400 text-sm">Queue Remaining</div>
+                  <div id="remainingText" class="text-2xl font-semibold mt-2">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-span-12 xl:col-span-4 flex flex-col gap-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="panel rounded-2xl p-5">
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Scheduled</div>
+                <div id="scheduledCount" class="text-5xl mt-4 font-light text-blue-300">00</div>
+                <div class="mt-4 h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div class="h-full w-1/2 bg-blue-300"></div>
+                </div>
+              </div>
+
+              <div class="panel rounded-2xl p-5">
+                <div class="text-slate-400 text-sm uppercase tracking-wider">Gap Time</div>
+                <div id="gapTimeText" class="text-5xl mt-4 font-light text-emerald-300">24:00</div>
+                <div class="mt-4 h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div id="gapBar" class="h-full bg-emerald-300" style="width:100%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel rounded-2xl p-6 flex-1">
+              <div class="flex items-center justify-between mb-6">
+                <div class="px-3 py-1 rounded bg-slate-600/60 text-xs tracking-wider">SELECTED CLIP</div>
+                <div class="text-slate-400">×</div>
+              </div>
+
+              <h3 id="metaTitle" class="text-4xl font-light mb-4">No clip selected</h3>
+              <p id="metaDescription" class="text-slate-400 text-lg leading-8 mb-8">
+                Upload videos in the library, generate a schedule, then click any timeline block to inspect it here.
+              </p>
+
+              <div class="space-y-4">
+                <div class="soft-panel rounded-lg px-4 py-4 flex items-center justify-between">
+                  <span class="text-slate-400 uppercase text-sm">Duration</span>
+                  <span id="metaDuration" class="text-lg">--:--</span>
+                </div>
+                <div class="soft-panel rounded-lg px-4 py-4 flex items-center justify-between">
+                  <span class="text-slate-400 uppercase text-sm">Start Time</span>
+                  <span id="metaStartTime" class="text-lg">--:--</span>
+                </div>
+                <div class="soft-panel rounded-lg px-4 py-4 flex items-center justify-between">
+                  <span class="text-slate-400 uppercase text-sm">Resolution</span>
+                  <span id="metaResolution" class="text-lg text-emerald-300">Unknown</span>
+                </div>
+                <div class="soft-panel rounded-lg px-4 py-4 flex items-center justify-between">
+                  <span class="text-slate-400 uppercase text-sm">Brand Tag</span>
+                  <span id="metaBrand" class="text-lg">--</span>
+                </div>
+                <div class="soft-panel rounded-lg px-4 py-4 flex items-center justify-between">
+                  <span class="text-slate-400 uppercase text-sm">Conflict</span>
+                  <span id="metaConflict" class="text-lg text-emerald-300">No</span>
+                </div>
+              </div>
+
+              <div class="mt-8 grid grid-cols-2 gap-4">
+                <button id="editSelectedBtn"
+                  class="rounded-lg py-4 bg-slate-600/40 border border-white/10 hover:bg-slate-600/60">
+                  EDIT CLIP
+                </button>
+                <button id="removeSelectedBtn" class="rounded-lg py-4 bg-red-700 hover:bg-red-600">
+                  REMOVE
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-white/10 bg-slate-900/80 backdrop-blur px-5 py-4">
+          <div class="flex items-center justify-between mb-4">
+            <div class="text-2xl font-medium">Daily Program Schedule</div>
+            <div class="text-sm text-slate-400">
+              24-hour auto-generated broadcast timeline
+            </div>
+          </div>
+
+          <div class="soft-panel rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-3 text-sm text-slate-400">
+              <div>Total Minutes: 1440</div>
+              <div id="conflictCountText">Conflicts: 0</div>
+            </div>
+
+            <div class="relative overflow-x-auto scroll-dark">
+              <div class="min-w-[1400px]">
+                <div class="timeline-hours text-xs text-slate-400 mb-2">
+                  <div>12 AM</div>
+                  <div>1 AM</div>
+                  <div>2 AM</div>
+                  <div>3 AM</div>
+                  <div>4 AM</div>
+                  <div>5 AM</div>
+                  <div>6 AM</div>
+                  <div>7 AM</div>
+                  <div>8 AM</div>
+                  <div>9 AM</div>
+                  <div>10 AM</div>
+                  <div>11 AM</div>
+                  <div>12 PM</div>
+                  <div>1 PM</div>
+                  <div>2 PM</div>
+                  <div>3 PM</div>
+                  <div>4 PM</div>
+                  <div>5 PM</div>
+                  <div>6 PM</div>
+                  <div>7 PM</div>
+                  <div>8 PM</div>
+                  <div>9 PM</div>
+                  <div>10 PM</div>
+                  <div>11 PM</div>
+                </div>
+
+                <div id="timelineTrack"
+                  class="timeline-grid relative h-32 rounded-xl bg-slate-800/80 border border-white/10"></div>
+              </div>
+            </div>
+
+            <div class="mt-4 flex items-center justify-between text-sm">
+              <div class="flex items-center gap-6 text-slate-400">
+                <span><span class="inline-block w-3 h-3 rounded bg-blue-500 mr-2"></span></span>
+                <span><span class="inline-block w-3 h-3 rounded bg-red-500 mr-2"></span></span>
+                <span><span class="inline-block w-3 h-3 rounded bg-amber-500 mr-2"></span></span>
+                <span><span class="inline-block w-3 h-3 rounded bg-slate-500 mr-2"></span></span>
+                <span><span class="inline-block w-3 h-3 rounded bg-rose-400 mr-2"></span></span>
+              </div>
+              <div class="text-slate-500">Master Output 1-2</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="libraryView" class="hidden flex-1 p-6 overflow-auto scroll-dark">
+        <div class="max-w-6xl mx-auto w-full">
+          <div class="mb-6">
+            <h2 class="text-4xl font-semibold mb-2">Library Management</h2>
+            <p class="text-slate-400 text-lg">
+              Upload multiple videos, assign brand tags and play counts, then auto-generate a 24-hour schedule.
+            </p>
+          </div>
+
+          <div class="panel rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <h3 class="text-2xl font-semibold">Upload Assets</h3>
+                <p class="text-slate-400 mt-1">Supports multiple local video files.</p>
+              </div>
+              <div id="selectedFilesText" class="text-slate-300">No files selected</div>
+            </div>
+
+            <label
+              class="block rounded-2xl border border-dashed border-blue-400/30 bg-blue-500/5 p-10 text-center cursor-pointer hover:bg-blue-500/10 transition">
+              <div class="text-5xl mb-4">⭱</div>
+              <div class="text-2xl font-semibold">Choose video files</div>
+              <div class="text-slate-400 mt-2">Select as many videos as you want</div>
+              <input id="fileInput" type="file" accept="video/*" multiple class="hidden" />
+            </label>
+
+            <div class="mt-6 flex gap-3 items-center">
+              <input id="scheduleDate" type="date"
+                class="rounded-lg bg-slate-900 border border-white/10 px-4 py-3 text-slate-200 outline-none" />
+
+              <button id="generateScheduleBtn" class="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-500 font-semibold">
+                Generate Schedule
+              </button>
+
+              <button id="resetBtn" class="px-6 py-3 rounded-lg bg-slate-700 hover:bg-slate-600 font-semibold">
+                Reset
+              </button>
+            </div>
+
+            <div class="mt-6 panel rounded-2xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-2xl font-semibold">Loaded Assets</h3>
+                <div class="text-slate-400">Click schedule blocks to preview metadata</div>
+              </div>
+              <div id="libraryList" class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div class="text-slate-500">No videos loaded yet.</div>
+              </div>
+            </div>
+          </div>
+      </section>
+
+      <section id="settingsView" class="hidden flex-1 p-6">
+        <div class="max-w-4xl">
+          <h2 class="text-4xl font-semibold mb-2">Settings</h2>
+          <p class="text-slate-400 text-lg">This section is reserved for future broadcast engine controls.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <div id="videoMetaModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="modal-title">Configure Video</h2>
+      <p id="modalFileName" class="modal-subtitle"></p>
+
+      <label class="modal-label">Brand Tag</label>
+      <input id="modalBrandTag" class="modal-input" type="text" placeholder="e.g. Jollibee, Mang Inasal, Neutral" />
+      <label class="modal-label">Play Count in 24 Hours</label>
+      <input id="modalPlayCount" class="modal-input" type="number" min="1" value="1" />
+
+      <div class="modal-actions">
+        <button id="modalCancelBtn" class="modal-btn secondary">Cancel</button>
+        <button id="modalSaveBtn" class="modal-btn primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="dragTimeTooltip" class="drag-time-tooltip hidden">
+  <div class="drag-time-label">Move Clip</div>
+  <div id="dragTimeText" class="drag-time-value">--:--</div>
+</div>
+  <script type="module" src="./Script/app.js"></script>
+</body>
+
+</html>
